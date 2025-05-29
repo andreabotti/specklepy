@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 import pandas as pd
 from specklepy.api.client import SpeckleClient
 from specklepy.transports.server import ServerTransport
@@ -9,17 +10,11 @@ from fn__libs import *
 
 
 
-# Setup Speckle client
-account = get_default_account()
-client = SpeckleClient(host=account.serverInfo.url)
-client.authenticate_with_account(account)
-
-# Project + model config
-SPECKLE_PROJECT_ID = "dfdc0d2b01"
-SPECKLE_MODEL_ID = "60d4b65b7b"
-
-
-
+# Load from Streamlit secrets (preferred) or fallback to env
+SPECKLE_URL = st.secrets.get("SPECKLE_URL", os.environ.get("SPECKLE_URL"))
+SPECKLE_API_TOKEN = st.secrets.get("SPECKLE_TOKEN", os.environ.get("SPECKLE_TOKEN"))
+SPECKLE_PROJECT_ID = st.secrets.get("SPECKLE_PROJECT_ID", os.environ.get("SPECKLE_PROJECT_ID"))
+SPECKLE_MODEL_ID = st.secrets.get("SPECKLE_MODEL_ID", os.environ.get("SPECKLE_MODEL_ID"))
 
 
 
