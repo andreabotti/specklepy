@@ -1,41 +1,42 @@
-import streamlit as st
 import os
+import streamlit as st
 import pandas as pd
 from specklepy.api.client import SpeckleClient
-from specklepy.transports.server import ServerTransport
-from specklepy.api.credentials import get_default_account
-from specklepy.api import operations
 
-from fn__libs import *
+from fn__libs import get_objects_list, extract_tekla_fields
 
 
 
-# Load from Streamlit secrets (preferred) or fallback to env
+
+# Load from Streamlit secrets or fallback to env
 SPECKLE_URL = st.secrets.get("SPECKLE_URL", os.environ.get("SPECKLE_URL"))
 SPECKLE_API_TOKEN = st.secrets.get("SPECKLE_TOKEN", os.environ.get("SPECKLE_TOKEN"))
 SPECKLE_PROJECT_ID = st.secrets.get("SPECKLE_PROJECT_ID", os.environ.get("SPECKLE_PROJECT_ID"))
 SPECKLE_MODEL_ID = st.secrets.get("SPECKLE_MODEL_ID", os.environ.get("SPECKLE_MODEL_ID"))
 
+# ✅ Initialize Speckle client using token (no local account)
+client = SpeckleClient(host=SPECKLE_URL)
+client.authenticate_with_token(SPECKLE_API_TOKEN)
 
 
 
-# Set full-width layout
+
+
+# Streamlit layout
 st.set_page_config(layout="wide")
-st.markdown("#### 🧩 Speckle Extractor — SpecklePy + Tekla Fields")
-
-
+st.title("🧩 Speckle Extractor — SpecklePy + Tekla Fields (Two-Column Layout)")
 
 try:
-    left_col, right_col = st.columns([2,3])  # 1/3 + 2/3 layout
+    left_col, right_col = st.columns([1, 2])  # 1/3 + 2/3 layout
 
     with left_col:
         embed_url = f"https://speckle.xyz/projects/{SPECKLE_PROJECT_ID}/models/{SPECKLE_MODEL_ID}?embed=%7B%22isEnabled%22%3Atrue%7D"
-        st.markdown("##### 🌐 Speckle Viewer")
+        st.subheader("🌐 Speckle Viewer")
         st.components.v1.iframe(embed_url, height=700)
 
     with right_col:
-
-        st.markdown("##### Speckle Object Parser")
+        st.write(f"Project ID: `{SPECKLE_PROJECT_ID}`")
+        st.write(f"Model ID: `{SPECKLE_MODEL_ID}`")
 
         with st.spinner("🔍 Fetching all object IDs using SpecklePy..."):
             all_object_ids = get_objects_list(client, SPECKLE_PROJECT_ID, SPECKLE_MODEL_ID)
@@ -44,8 +45,6 @@ try:
         extracted_rows = []
         with st.spinner("📦 Extracting Tekla fields from all objects..."):
             for obj_id in all_object_ids:
-                # st.write(obj_id)
-
                 try:
                     row = extract_tekla_fields(client, SPECKLE_PROJECT_ID, obj_id)
                     extracted_rows.append(row)
@@ -54,13 +53,6 @@ try:
 
         if extracted_rows:
             df = pd.DataFrame(extracted_rows)
-
-            mapping_dict = load_mapping_dict('mapping_dict.txt')
-            df = add_mapping_column(df, 'Phase', mapping_dict, 'Phase_Ceccoli')
-
-            print(df)
-
-
 
             st.subheader("📋 Extracted Tekla Fields Table")
             st.dataframe(df)
