@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 import pandas as pd
 from specklepy.api.client import SpeckleClient
 from specklepy.transports.server import ServerTransport
