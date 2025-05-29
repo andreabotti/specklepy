@@ -9,13 +9,6 @@ from specklepy.api import operations
 
 
 
-# Load from Streamlit secrets (preferred) or fallback to env
-SPECKLE_URL = st.secrets.get("SPECKLE_URL", os.environ.get("SPECKLE_URL"))
-SPECKLE_API_TOKEN = st.secrets.get("SPECKLE_TOKEN", os.environ.get("SPECKLE_TOKEN"))
-SPECKLE_PROJECT_ID = st.secrets.get("SPECKLE_PROJECT_ID", os.environ.get("SPECKLE_PROJECT_ID"))
-SPECKLE_MODEL_ID = st.secrets.get("SPECKLE_MODEL_ID", os.environ.get("SPECKLE_MODEL_ID"))
-
-
 
 def get_objects_list(client, project_id, model_id):
     model = client.model.get_with_versions(model_id, project_id).versions
