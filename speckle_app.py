@@ -5,24 +5,25 @@ from specklepy.api.client import SpeckleClient
 
 from fn__libs import get_objects_list, extract_tekla_fields
 
+# ---------- Helper function ----------
+def get_required_secret(key):
+    val = st.secrets.get(key) or os.environ.get(key)
+    if not val:
+        st.error(f"❌ Missing required secret or environment variable: {key}")
+        st.stop()
+    return val
 
+# ---------- Load configuration ----------
+SPECKLE_URL = get_required_secret("SPECKLE_URL")
+SPECKLE_API_TOKEN = get_required_secret("SPECKLE_TOKEN")
+SPECKLE_PROJECT_ID = get_required_secret("SPECKLE_PROJECT_ID")
+SPECKLE_MODEL_ID = get_required_secret("SPECKLE_MODEL_ID")
 
-
-# Load from Streamlit secrets or fallback to env
-SPECKLE_URL = st.secrets.get("SPECKLE_URL", os.environ.get("SPECKLE_URL"))
-SPECKLE_API_TOKEN = st.secrets.get("SPECKLE_TOKEN", os.environ.get("SPECKLE_TOKEN"))
-SPECKLE_PROJECT_ID = st.secrets.get("SPECKLE_PROJECT_ID", os.environ.get("SPECKLE_PROJECT_ID"))
-SPECKLE_MODEL_ID = st.secrets.get("SPECKLE_MODEL_ID", os.environ.get("SPECKLE_MODEL_ID"))
-
-# ✅ Initialize Speckle client using token (no local account)
+# ---------- Initialize Speckle client ----------
 client = SpeckleClient(host=SPECKLE_URL)
 client.authenticate_with_token(SPECKLE_API_TOKEN)
 
-
-
-
-
-# Streamlit layout
+# ---------- Streamlit layout ----------
 st.set_page_config(layout="wide")
 st.title("🧩 Speckle Extractor — SpecklePy + Tekla Fields (Two-Column Layout)")
 
@@ -53,6 +54,7 @@ try:
 
         if extracted_rows:
             df = pd.DataFrame(extracted_rows)
+            df = df.astype(str)                     # Ensure all columns are string-typed for Arrow compatibility
 
             st.subheader("📋 Extracted Tekla Fields Table")
             st.dataframe(df)
